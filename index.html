@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2b22">
+<meta name="description" content="Truco-Loco — jogo de cartas para telemóvel e computador"><meta name="mobile-web-app-capable" content="yes">
+<title>Truco-Loco</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d2b22;--felt:#2f7a4f;--card:#fff;--ink:#222;--red:#c62828;--btn:#1d2b22;--btnfg:#fff;--mut:#5c6b62;--hl:#0001;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101914;--fg:#e8efe9;--felt:#1f5a38;--card:#f3f0e8;--btn:#e8efe9;--btnfg:#101914;--mut:#9db0a3;--hl:#fff2}}
+:root[data-theme="dark"]{--bg:#101914;--fg:#e8efe9;--felt:#1f5a38;--card:#f3f0e8;--btn:#e8efe9;--btnfg:#101914;--mut:#9db0a3;--hl:#fff2}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif}
+#app{max-width:480px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+select{font-size:15px;padding:4px;background:var(--bg);color:var(--fg);border:1px solid var(--mut);border-radius:6px}
+.row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.card{width:58px;height:84px;border-radius:8px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:20px;box-shadow:0 1px 4px #0005;user-select:none}
+.card.r{color:var(--red)}.card small{font-size:24px;line-height:1}
+.card.back{background:repeating-linear-gradient(45deg,#2c4a7c,#2c4a7c 5px,#3b5f9a 5px,#3b5f9a 10px);color:transparent;border:3px solid var(--card)}
+.card.mini{width:32px;height:46px;font-size:13px;border-radius:5px}.card.mini small{font-size:15px}
+.mine .card{cursor:pointer;width:56px;height:82px;font-size:20px}
+.mine .card.off{opacity:.6;cursor:default}
+.felt{background:var(--felt);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:130px}
+.vira{display:flex;align-items:center;gap:8px;color:#fff;font-size:13px}
+.pc{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#fff;gap:2px}
+.pr{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;font-size:14px}
+.pr.turn{background:var(--hl);font-weight:700}.pr.dead{opacity:.4}
+.pr .r2{display:flex;gap:4px;align-items:center;font-size:13px;color:var(--mut)}
+#tb{position:relative;height:560px}
+.oval{position:absolute;inset:7% 3%;background:var(--felt);border-radius:50%}
+.vira{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font-size:11px;text-align:center}
+.pc{position:absolute;transform:translate(-50%,-50%)}
+.pc .card{width:40px;height:58px;font-size:15px}.pc .card small{font-size:17px}
+.seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 6px;border-radius:12px;background:var(--bg);border:2px solid transparent}
+.seat.turn{border-color:#f2b705}.seat.dead{opacity:.4}
+.seat .nm{font-weight:700;font-size:13px;display:flex;gap:4px;align-items:center}
+.seat .bd{color:var(--mut);font-size:11px;white-space:nowrap}
+.dl{background:#f2b705;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:800}
+.cr{display:flex;align-items:center;gap:4px}
+.cs{display:flex}
+.cs.fan .card{width:28px;height:42px;font-size:12px;margin-left:-16px}.cs.fan .card small{font-size:13px}.cs.fan .card:first-child{margin-left:0}
+.cs.mine .card{width:46px;height:68px;font-size:17px;margin-left:-8px}.cs.mine .card small{font-size:19px}.cs.mine .card:first-child{margin-left:0}
+.hp{width:34px;font-size:10px;line-height:1.1;word-break:break-all}
+#m{text-align:center;min-height:40px;font-size:14px;color:var(--mut);white-space:pre-line}
+#acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:46px}
+button{background:var(--btn);color:var(--btnfg);border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
+details{font-size:13px;color:var(--mut)}
+
+/* Ajustes responsivos: telemóvel em primeiro lugar, com adaptação a ecrãs maiores. */
+*{box-sizing:border-box}
+html,body{width:100%;min-height:100%;overscroll-behavior-y:contain}
+body{overflow-x:hidden}
+#app{width:100%;max-width:900px;min-height:100svh;margin:0 auto;padding: max(6px,env(safe-area-inset-top)) 8px max(6px,env(safe-area-inset-bottom));gap:6px}
+.top{gap:8px;flex-wrap:wrap;font-size:16px;min-height:36px}
+.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.top label{display:flex;align-items:center;gap:5px;font-size:13px}
+.top select{font-size:14px;padding:4px 6px}
+button{padding:10px 13px;font-size:14px;border-radius:9px}
+button.invite{padding:7px 10px;font-size:12px;white-space:nowrap}
+#tb{height:clamp(310px, 53svh, 500px);min-height:310px;flex:0 0 auto}
+.oval{inset:8% 2%;}
+.seat{background:transparent;border:1px solid transparent;padding:2px 3px;gap:2px;z-index:1;max-width:31%;}
+.seat.turn{border-color:#f2b705;background:#ffffff12}
+.seat .nm{font-size:clamp(10px,2.6vw,13px);text-shadow:0 1px 2px #0007;white-space:nowrap}
+.seat .bd{font-size:clamp(9px,2.2vw,11px);color:#fff;text-shadow:0 1px 2px #0009;white-space:nowrap}
+.seat .hp{font-size:9px;width:auto;white-space:nowrap;word-break:normal}
+.pc{z-index:3}
+.pc .card{width:clamp(30px,8vw,40px);height:clamp(44px,11vw,58px);font-size:clamp(12px,3.2vw,15px)}
+.pc .card small{font-size:clamp(14px,3.6vw,17px)}
+.cs.mine .card{width:clamp(39px,11vw,46px);height:clamp(57px,16vw,68px);font-size:clamp(15px,4vw,17px)}
+#acts{gap:6px;min-height:40px;padding-bottom:2px}
+#acts button{flex:0 1 auto;min-width:72px;padding:9px 10px;font-size:13px}
+#m{min-height:34px;font-size:13px;line-height:1.25}
+details{padding:2px 3px 8px}
+@media (max-height:700px) and (max-width:600px){
+ #app{gap:4px;padding-top:4px}
+ #tb{height:45svh;min-height:275px}
+ #m{min-height:28px;font-size:12px}
+ #acts button{padding:7px 8px;font-size:12px}
+}
+@media (min-width:700px){
+ #app{padding:16px;gap:10px}
+ #tb{height:min(62svh,560px);min-height:420px}
+ .seat{max-width:25%;padding:4px 6px}
+ .seat .nm{font-size:13px}
+ .seat .bd{font-size:11px}
+ #acts button{font-size:15px;padding:11px 16px}
+}
+</style></head><body><div id="app">
+<div class="top"><b>Truco-Loco</b><div class="top-actions"><label>Jogadores <select id="np" onchange="reset()"><option>3</option><option>4</option><option selected>5</option><option>6</option></select></label><button id="roomBtn" class="invite" type="button" onclick="createRoom()">Criar sala online</button><button id="inviteBtn" class="invite" type="button" onclick="inviteFriends()" disabled>Convidar amigos</button></div></div>
+<div id="tb"></div>
+<div id="m"></div>
+<div id="acts"></div>
+<details><summary>Regras</summary>
+<p>Cada jogador começa com 5 vidas (❤️). Baralho de truco de 40 cartas; a cada rodada vira-se uma carta (vira) e a manilha é a carta seguinte (♣ > ♥ > ♠ > ♦). O resto segue a ordem 3, 2, A, K, J, Q, 7, 6, 5, 4.</p>
+<p>Rodada 1 recebe 1 carta, rodada 2 recebe 2, e assim até 7 cartas; depois desce até voltar a 1 e recomeça. Com 6 jogadores o máximo é 6 cartas.</p>
+<p>O jogo roda no sentido anti-horário. O botão D marca o dealer, que é o último a apostar e o último a jogar na primeira vaza. A cada rodada o botão passa para o próximo, então todos são o "mão" (quem começa, logo após o dealer) uma vez por volta.</p>
+<p>Rodadas de 1 carta são no escuro: você não vê a sua, só as dos outros, e aposta "mato" (1) ou "não mato" (0). Nas demais você vê só as suas cartas e aposta quantas vazas fará (0 até o número de cartas).</p>
+<p>Ao final, cada jogador perde tantas vidas quanto a diferença entre o que apostou e o que fez. Vaza com as cartas mais fortes empatadas ninguém leva. Se alguém apostou que faz e a vaza empata, essa pessoa perde a vida normalmente; se ninguém apostou que faz, ninguém perde. Quem leva a vaza abre a próxima. Vence o último com vidas.</p></details>
+</div>
+<script>
+const S=['♣','♥','♠','♦'],R='4567QJKA23'.split(''),SU=['♦','♠','♥','♣'];
+const $=id=>document.getElementById(id);
+const man=()=>R[(R.indexOf(G.vira.r)+1)%10];
+const val=c=>c.r==man()?10+SU.indexOf(c.s):R.indexOf(c.r);
+const nm=p=>playerNames[p]||(p===localPlayer?'Você':'CPU '+p);
+const msg=t=>$('m').textContent=t;
+let G;
+// Multijogador online por WebRTC (PeerJS). O ficheiro precisa estar publicado em HTTPS.
+let peer=null, isHost=false, localPlayer=0, roomCode='', roomUrl='', hostConn=null;
+const remoteSeats=new Map(), playerNames={0:'Você'};
+function sayStatus(t){ msg(t); }
+function publicState(){ return {G, playerNames, remotePlayers:[...remoteSeats.keys()]}; }
+function broadcastState(){ if(!isHost)return; const packet={type:'state',state:publicState()}; for(const c of remoteSeats.values()){try{if(c.open)c.send(packet)}catch(e){}} }
+function isRemoteSeat(p){return [...remoteSeats.values()].some(c=>c.playerIndex===p);}
+function createRoom(){
+  if(location.protocol==='file:'){alert('Antes de criar uma sala online, publique este HTML num site HTTPS. Um ficheiro aberto como file:// não tem um endereço que os amigos possam abrir.');return;}
+  if(typeof Peer==='undefined'){alert('Não foi possível carregar o serviço de ligação online. Verifique a internet e recarregue a página.');return;}
+  if(peer){alert('A sala já está criada. Use “Convidar amigos” para partilhar o link.');return;}
+  isHost=true;localPlayer=0;
+  peer=new Peer(undefined,{debug:1});
+  peer.on('open',id=>{roomCode=id;roomUrl=location.href.split('?')[0].split('#')[0]+'?room='+encodeURIComponent(id);$('inviteBtn').disabled=false;$('roomBtn').textContent='Sala criada';$('roomBtn').disabled=true;msg('Sala online criada! Partilhe o convite para os amigos entrarem.');broadcastState();});
+  peer.on('connection',conn=>{
+    conn.on('open',()=>{
+      let seat=-1;for(let i=1;i<G.N;i++){if(!isRemoteSeat(i)){seat=i;break;}}
+      if(seat<0){conn.send({type:'full'});conn.close();return;}
+      conn.playerIndex=seat;remoteSeats.set(seat,conn);playerNames[seat]=String(conn.metadata?.name||('Amigo '+seat)).slice(0,18);
+      conn.send({type:'welcome',playerIndex:seat,state:publicState()});broadcastState();
+      conn.on('data',d=>handleGuestMessage(seat,d));
+      conn.on('close',()=>{remoteSeats.delete(seat);delete playerNames[seat];broadcastState();});
+    });
+  });
+  peer.on('error',e=>{msg('Erro na sala online: '+(e.type||'ligação')+'. Tente criar a sala novamente.');});
+}
+function handleGuestMessage(seat,d){
+  if(!isHost||!d)return;
+  if(d.type==='bid'&&G.phase==='bid'&&G.order[G.bi]===seat&&Number.isInteger(d.value)&&d.value>=0&&d.value<=G.n){setBid(seat,d.value);}
+  if(d.type==='play'&&G.phase==='play'&&G.turnP===seat&&!G.busy&&Number.isInteger(d.index)&&d.index>=0&&d.index<G.hands[seat].length){doPlay(seat,d.index);}
+}
+function joinRoom(){
+  const params=new URLSearchParams(location.search), id=params.get('room');
+  if(!id||isHost||peer)return;
+  if(location.protocol==='file:'){msg('Abra o convite publicado na internet, não um ficheiro local.');return;}
+  if(typeof Peer==='undefined'){msg('A carregar ligação online…');setTimeout(joinRoom,700);return;}
+  const name=(prompt('Qual é o teu nome para a partida?','Amigo')||'Amigo').trim().slice(0,18)||'Amigo';
+  peer=new Peer(undefined,{debug:1});
+  peer.on('open',()=>{hostConn=peer.connect(id,{reliable:true,metadata:{name}});hostConn.on('open',()=>msg('A ligar à sala…'));hostConn.on('data',d=>{
+    if(d.type==='full'){msg('Esta sala já está cheia. Pede ao anfitrião um novo convite.');return;}
+    if(d.type==='welcome'){localPlayer=d.playerIndex;Object.assign(playerNames,d.state.playerNames||{});G=d.state.G;render();msg('Entraste na sala! Aguardando a tua vez.');}
+    if(d.type==='state'){G=d.state.G;Object.assign(playerNames,d.state.playerNames||{});render();}
+  });hostConn.on('close',()=>msg('A ligação à sala foi encerrada.'));});
+  peer.on('error',e=>msg('Não foi possível entrar na sala ('+(e.type||'erro')+'). Confirma o link e tenta novamente.'));
+}
+function requestBid(b){if(isHost){setBid(0,b);}else if(hostConn&&hostConn.open){hostConn.send({type:'bid',value:b});msg('Aposta enviada…');}else if(!hostConn){setBid(localPlayer,b);}}
+function requestPlay(i){if(isHost){doPlay(0,i);}else if(hostConn&&hostConn.open){hostConn.send({type:'play',index:i});msg('Jogada enviada…');}else if(!hostConn){doPlay(localPlayer,i);}}
+
+function deck(){const d=[];for(const s of S)for(const r of R)d.push({r,s});return d.sort(()=>Math.random()-.5)}
+function reset(){
+  const N=+$('np').value,M=Math.min(7,Math.floor(39/N)),SEQ=[];
+  for(let i=1;i<=M;i++)SEQ.push(i);for(let i=M-1;i>=2;i--)SEQ.push(i);
+  G={N,SEQ,lives:Array(N).fill(5),ri:-1,dealer:N-1,phase:'',vira:{r:'4',s:'♣'},hands:[],order:[],bids:[],won:[],trick:[],turnP:-1};
+  newRound();
+}
+function nextAlive(p){do p=(p+1)%G.N;while(G.lives[p]<=0);return p}
+function newRound(){
+  G.ri++;G.n=G.SEQ[G.ri%G.SEQ.length];G.dealer=nextAlive(G.dealer);G.first=nextAlive(G.dealer);
+  const d=deck();G.vira=d.pop();G.hands=[];
+  for(let p=0;p<G.N;p++)G.hands[p]=G.lives[p]>0?d.splice(0,G.n).sort((a,b)=>val(a)-val(b)):[];
+  G.order=[];let p=G.first;do{G.order.push(p);p=nextAlive(p)}while(p!=G.first);
+  Object.assign(G,{bids:Array(G.N).fill(null),won:Array(G.N).fill(0),bi:0,trick:[],lead:G.first,tn:0,voids:0,phase:'bid',blind:G.n==1,busy:false,turnP:-1});
+  msg(`Rodada ${G.ri+1}: ${G.n} carta${G.n>1?'s':''}.`+(G.blind?' No escuro: você não vê a sua carta.':''));
+  render();bidStep();
+}
+function bidStep(){
+  if(G.bi>=G.order.length){G.phase='play';return playStep()}
+  const p=G.order[G.bi];G.turnP=p;render();
+  if(p!==localPlayer){if(isHost&&isRemoteSeat(p)){msg('À espera da aposta de '+nm(p)+'…');return;} if(isHost || !hostConn)setTimeout(()=>setBid(p,cpuBid(p)),800);}
+}
+function setBid(p,b){G.bids[p]=b;G.bi++;msg(nm(p)+' apostou '+b+'.');bidStep()}
+const seq=()=>{const i=G.order.indexOf(G.lead);return G.order.slice(i).concat(G.order.slice(0,i))};
+function playStep(){
+  const q=seq();
+  if(G.trick.length>=q.length){G.busy=true;G.turnP=-1;render();return setTimeout(resolve,1500)}
+  const p=q[G.trick.length];G.turnP=p;render();
+  if(p!==localPlayer){if(isHost&&isRemoteSeat(p)){msg('À espera da jogada de '+nm(p)+'…');return;} if(isHost || !hostConn)setTimeout(()=>doPlay(p,cpuPick(p)),900);}
+}
+function doPlay(p,i){G.trick.push({p,c:G.hands[p].splice(i,1)[0]});playStep()}
+function resolve(){
+  const t=G.trick,mx=Math.max(...t.map(x=>val(x.c))),top=t.filter(x=>val(x.c)==mx);
+  G.tn++;G.busy=false;
+  if(top.length==1){const w=top[0].p;G.won[w]++;G.lead=w;msg(nm(w)+' levou a vaza.')}
+  else{G.voids++;msg('Vaza empatada: ninguém leva.')}
+  G.trick=[];
+  if(G.tn>=G.n)return endRound();
+  playStep();
+}
+function endRound(){
+  G.turnP=-1;const L=[];
+  G.order.forEach(p=>{const d=Math.abs(G.bids[p]-G.won[p]);G.lives[p]=Math.max(0,G.lives[p]-d);L.push(`${nm(p)}: apostou ${G.bids[p]}, fez ${G.won[p]}`+(d?` → −${d} ❤️`:' ✓'))});
+  G.phase='end';
+  const al=G.lives.filter(x=>x>0).length;
+  if(al<=1){G.phase='over';const w=G.lives.findIndex(x=>x>0);L.push(w<0?'Empate geral!':w==0?'🏆 Você venceu o jogo!':nm(w)+' venceu o jogo.')}
+  msg('Fim da rodada\n'+L.join('\n'));render();
+}
+function cpuBid(p){
+  const h=G.hands[p];
+  if(G.n==1){
+    const seen=G.order.filter(q=>q!=p).map(q=>G.hands[q][0]),mx=Math.max(...seen.map(val));
+    const key=c=>c.r+c.s,ex=new Set(seen.map(key).concat(key(G.vira)));
+    const pool=deck().filter(c=>!ex.has(key(c)));
+    return pool.filter(c=>val(c)>mx).length/pool.length>.5?1:0;
+  }
+  const pr=v=>v>=10?.95:v==9?.65:v==8?.45:v==7?.25:v==6?.12:.03;
+  const e=h.reduce((t,c)=>t+pr(val(c)),0)*(G.order.length>4?.8:.95);
+  return Math.max(0,Math.min(G.n,Math.round(e)));
+}
+function cpuPick(p){
+  const h=G.hands[p];if(h.length==1)return 0;
+  const idx=h.map((_,i)=>i).sort((a,b)=>val(h[a])-val(h[b]));
+  const need=G.bids[p]-G.won[p],cur=G.trick.length?Math.max(...G.trick.map(x=>val(x.c))):-1;
+  if(need>0)return cur<0?idx[idx.length-1]:(idx.find(i=>val(h[i])>cur)??idx[0]);
+  if(cur<0)return idx[0];
+  const low=idx.filter(i=>val(h[i])<=cur);
+  return low.length?low[low.length-1]:idx[0];
+}
+function cardEl(c,hide,mini){
+  const e=document.createElement('div');
+  if(hide)e.className='card back';
+  else{e.className='card'+(c.s=='♥'||c.s=='♦'?' r':'');e.innerHTML=c.r+'<small>'+c.s+'</small>'}
+  if(mini)e.classList.add('mini');
+  return e;
+}
+function pos(p,rx,ry){const a=(90-360*p/G.N)*Math.PI/180;return `left:${50+rx*Math.cos(a)}%;top:${50+ry*Math.sin(a)}%`}
+function render(){
+  const tb=$('tb');tb.innerHTML='<div class="oval"></div>';
+  const vr=document.createElement('div');vr.className='vira';vr.append(cardEl(G.vira,0,1));
+  vr.insertAdjacentHTML('beforeend','<span>Vira<br>Manilha: '+man()+'</span>');tb.append(vr);
+  G.trick.forEach(({p,c})=>{const d=document.createElement('div');d.className='pc';d.style.cssText=pos(p,17,18);d.append(cardEl(c));tb.append(d)});
+  const can=G.phase=='play'&&G.turnP==localPlayer&&!G.busy;
+  for(let p=0;p<G.N;p++){
+    const s=document.createElement('div');s.className='seat'+(G.lives[p]<=0?' dead':'')+(G.turnP==p?' turn':'');
+    s.style.cssText=pos(p,34,36);
+    const b=G.bids[p]==null?'—':`aposta ${G.bids[p]} · fez ${G.won[p]}`;
+    s.innerHTML=`<div class="nm">${nm(p)}${G.dealer==p?'<i class="dl">D</i>':''}</div><div class="bd">${b}</div>`;
+    const row=document.createElement('div');row.className='cr';
+    const cards=document.createElement('div');cards.className='cs '+(p?'fan':'mine');
+    G.hands[p].forEach((c,i)=>{
+      const e=cardEl(c,p===localPlayer?G.blind:(G.n!==1),p!==localPlayer);
+      if(p===localPlayer){if(can)e.onclick=()=>requestPlay(i);else e.classList.add('off')}
+      cards.append(e);
+    });
+    const h=document.createElement('div');h.className='hp';h.textContent='❤️'.repeat(G.lives[p])||'☠️';
+    row.append(cards,h);s.append(row);tb.append(s);
+  }
+  const ac=$('acts');ac.innerHTML='';let l=[];
+  if(G.phase=='bid'&&G.order[G.bi]===localPlayer){
+    for(let b=0;b<=G.n;b++)l.push([G.n==1?(b?'Mato':'Não mato'):'Faço '+b,()=>requestBid(b)]);
+  }else if(G.phase=='end'&&(isHost||!hostConn))l=[['Próxima rodada',newRound]];
+  else if(G.phase=='end'&&!isHost)l=[['A aguardar próxima rodada',()=>{}]];
+  else if(G.phase=='over')l=[['Jogar de novo',()=>{if(isHost||!hostConn)reset();else msg('Só o anfitrião pode reiniciar a partida.');}]];
+  l.forEach(([x,f])=>{const bt=document.createElement('button');bt.textContent=x;bt.onclick=f;ac.append(bt)});
+  broadcastState();
+}
+async function inviteFriends(){
+  if(!roomUrl){
+    if(location.protocol==='file:') alert('O convite só funciona depois de publicar o jogo num site HTTPS. Depois, toque em “Criar sala online” e partilhe o link gerado.');
+    else alert('Primeiro toque em “Criar sala online” para abrir uma sala.');
+    return;
+  }
+  const data={title:'Truco-Loco — convite para a sala',text:'Entra na minha sala do Truco-Loco!',url:roomUrl};
+  try{
+    if(navigator.share){await navigator.share(data);}
+    else if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(roomUrl);alert('Link da sala copiado! Envia-o aos teus amigos.');}
+    else{const copied=prompt('Copia o link da sala e envia aos teus amigos:',roomUrl);if(copied!==null)alert('Envia o link aos teus amigos para entrarem na sala.');}
+  }catch(e){if(e.name!=='AbortError'){prompt('Copia este link e envia aos teus amigos:',roomUrl);}}
+}
+
+reset();
+</script><script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>window.addEventListener("load",joinRoom);</script></body></html>
